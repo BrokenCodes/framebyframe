@@ -1,21 +1,17 @@
-/** Video-element helpers: metadata probing, precise seeking, fps estimation. */
-
-export interface VideoMeta {
-  duration: number
-  width: number
-  height: number
-  fps: number
-  /** True when fps came from real frame callbacks rather than the 30fps fallback. */
-  fpsMeasured: boolean
-}
+/** Video-element helpers: metadata probing, precise seeking, fps measurement. */
 
 export const hasFrameCallback = () =>
   typeof HTMLVideoElement !== 'undefined' &&
   'requestVideoFrameCallback' in HTMLVideoElement.prototype
 
-export function loadMetadata(video: HTMLVideoElement): Promise<void> {
+/** @param {HTMLVideoElement} video */
+export function loadMetadata(video) {
   if (video.readyState >= 1) return Promise.resolve()
   return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      video.removeEventListener('loadedmetadata', ok)
+      video.removeEventListener('error', fail)
+    }
     const ok = () => {
       cleanup()
       resolve()
@@ -24,10 +20,6 @@ export function loadMetadata(video: HTMLVideoElement): Promise<void> {
       cleanup()
       reject(new Error('decode-failed'))
     }
-    const cleanup = () => {
-      video.removeEventListener('loadedmetadata', ok)
-      video.removeEventListener('error', fail)
-    }
     video.addEventListener('loadedmetadata', ok)
     video.addEventListener('error', fail)
   })
@@ -35,13 +27,19 @@ export function loadMetadata(video: HTMLVideoElement): Promise<void> {
 
 /**
  * Seeks and resolves once the frame for that time is actually painted.
- * `seeked` alone can fire before the new frame is available for drawing, so we
- * wait one frame callback where supported.
+ * `seeked` alone can fire before the new frame is available to draw, so we wait
+ * one frame callback where supported.
+ * @param {HTMLVideoElement} video
+ * @param {number} time
  */
-export function seekTo(video: HTMLVideoElement, time: number): Promise<void> {
+export function seekTo(video, time) {
   const target = Math.min(Math.max(time, 0), Math.max(video.duration - 1e-4, 0))
   return new Promise((resolve, reject) => {
     let settled = false
+    const cleanup = () => {
+      video.removeEventListener('seeked', onSeeked)
+      video.removeEventListener('error', fail)
+    }
     const done = () => {
       if (settled) return
       settled = true
@@ -56,18 +54,14 @@ export function seekTo(video: HTMLVideoElement, time: number): Promise<void> {
     }
     const onSeeked = () => {
       if (hasFrameCallback()) {
-        // one painted frame after the seek settles
         video.requestVideoFrameCallback(() => done())
-        // some browsers won't fire rVFC while paused off-screen; don't hang
+        // Some browsers won't fire rVFC while paused off-screen; don't hang.
         setTimeout(done, 200)
       } else {
         done()
       }
     }
-    const cleanup = () => {
-      video.removeEventListener('seeked', onSeeked)
-      video.removeEventListener('error', fail)
-    }
+
     video.addEventListener('seeked', onSeeked)
     video.addEventListener('error', fail)
 
@@ -80,10 +74,12 @@ export function seekTo(video: HTMLVideoElement, time: number): Promise<void> {
 }
 
 /**
- * Estimates frame rate by watching real presentation timestamps.
- * Falls back to 30 when the browser has no frame callback API.
+ * Estimates frame rate from real presentation timestamps, then snaps to the
+ * nearest standard rate. Falls back to 30 where the API is unavailable.
+ * @param {HTMLVideoElement} video
+ * @returns {Promise<{fps: number, measured: boolean}>}
  */
-export async function estimateFps(video: HTMLVideoElement): Promise<{ fps: number; measured: boolean }> {
+export async function estimateFps(video) {
   if (!hasFrameCallback() || !Number.isFinite(video.duration) || video.duration <= 0) {
     return { fps: 30, measured: false }
   }
@@ -92,15 +88,15 @@ export async function estimateFps(video: HTMLVideoElement): Promise<{ fps: numbe
   const startTime = video.currentTime
   video.muted = true
 
-  const stamps: number[] = []
-  const collected = await new Promise<boolean>((resolve) => {
+  const stamps = []
+  const collected = await new Promise((resolve) => {
     let stop = false
-    const finish = (ok: boolean) => {
+    const finish = (ok) => {
       if (stop) return
       stop = true
       resolve(ok)
     }
-    const tick = (_now: number, meta: VideoFrameCallbackMetadata) => {
+    const tick = (_now, meta) => {
       if (stop) return
       stamps.push(meta.mediaTime)
       if (stamps.length >= 14) return finish(true)
@@ -108,7 +104,7 @@ export async function estimateFps(video: HTMLVideoElement): Promise<{ fps: numbe
     }
     video.requestVideoFrameCallback(tick)
     video.play().catch(() => finish(false))
-    // hard stop so a stalled decode can't block loading the file
+    // Hard stop so a stalled decode can't block loading the file.
     setTimeout(() => finish(stamps.length >= 4), 1600)
   })
 
@@ -117,12 +113,12 @@ export async function estimateFps(video: HTMLVideoElement): Promise<{ fps: numbe
   try {
     await seekTo(video, startTime)
   } catch {
-    /* not fatal — playback position is cosmetic here */
+    /* playback position is cosmetic here */
   }
 
   if (!collected || stamps.length < 4) return { fps: 30, measured: false }
 
-  // median delta resists dropped/duplicated frames better than the mean
+  // Median delta resists dropped/duplicated frames better than the mean.
   const deltas = stamps
     .slice(1)
     .map((t, i) => t - stamps[i])
@@ -130,15 +126,17 @@ export async function estimateFps(video: HTMLVideoElement): Promise<{ fps: numbe
     .sort((a, b) => a - b)
   if (!deltas.length) return { fps: 30, measured: false }
 
-  const median = deltas[Math.floor(deltas.length / 2)]
-  const raw = 1 / median
-  // snap to the nearest common rate when we're within 3%
+  const raw = 1 / deltas[Math.floor(deltas.length / 2)]
   const common = [23.976, 24, 25, 29.97, 30, 48, 50, 59.94, 60, 90, 120, 144, 240]
   const near = common.find((c) => Math.abs(c - raw) / c < 0.03)
   return { fps: near ?? Math.round(raw * 1000) / 1000, measured: true }
 }
 
-export async function probe(video: HTMLVideoElement): Promise<VideoMeta> {
+/**
+ * @param {HTMLVideoElement} video
+ * @returns {Promise<{duration:number,width:number,height:number,fps:number,fpsMeasured:boolean}>}
+ */
+export async function probe(video) {
   await loadMetadata(video)
   if (!video.videoWidth || !video.videoHeight) throw new Error('no-video-track')
   const { fps, measured } = await estimateFps(video)

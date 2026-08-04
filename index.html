@@ -20,11 +20,14 @@
     <meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f2f0ec" media="(prefers-color-scheme: light)" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="application-name" content="FrameByFrame" />
+    <meta name="apple-mobile-web-app-title" content="FrameByFrame" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
 
     <!--
       Theme bootstrap. Runs before first paint so the page never flashes the
-      wrong theme while React boots. Must produce the same result as
-      applyTheme() in src/lib/theme.ts — keep the two in sync.
+      wrong theme. Must produce the same result as applyTheme() in js/theme.js.
     -->
     <script>
       ;(function () {
@@ -38,67 +41,20 @@
           root.classList.toggle('dark', dark)
           root.style.colorScheme = dark ? 'dark' : 'light'
           root.dataset.theme = dark ? 'dark' : 'light'
-        } catch (e) {
-          /* storage blocked — React will apply the theme on mount instead */
-        }
+        } catch (e) {}
       })()
     </script>
-    <meta name="application-name" content="FrameByFrame" />
-    <meta name="apple-mobile-web-app-title" content="FrameByFrame" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="format-detection" content="telephone=no" />
-
-
-    <!-- ==================== Social (SMO) ==================== -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="FrameByFrame" />
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:url" content="https://framebyframe.app/" />
-    <meta property="og:title" content="FrameByFrame — Extract Frames From Video, Free & Private" />
-    <meta
-      property="og:description"
-      content="Full-resolution stills from any video, entirely in your browser. Every frame or sampled by interval — PNG, JPEG, WebP, ZIP. No upload, no account, no watermark."
-    />
-    <meta property="og:image" content="https://framebyframe.app/og.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta
-      property="og:image:alt"
-      content="FrameByFrame — a browser-based video frame extractor showing a timeline and extracted stills"
-    />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="FrameByFrame — Extract Frames From Video, Free & Private" />
-    <meta
-      name="twitter:description"
-      content="Full-resolution stills from any video, entirely in your browser. No upload, no account, no watermark."
-    />
-    <meta name="twitter:image" content="https://framebyframe.app/og.png" />
-    <meta
-      name="twitter:image:alt"
-      content="FrameByFrame — a browser-based video frame extractor showing a timeline and extracted stills"
-    />
-
-    <!-- ==================== Icons & manifest ==================== -->
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0d'/%3E%3Crect x='6' y='9' width='20' height='14' fill='none' stroke='%23f2f0ec' stroke-width='2'/%3E%3Cpath d='M12 9v14M20 9v14' stroke='%23c2202f' stroke-width='2'/%3E%3C/svg%3E"
-    />
-    <link rel="manifest" href="/manifest.webmanifest" />
 
     <!--
       Google Consent Mode v2 defaults.
 
-      This MUST run before gtag.js so no storage is written and no measurement is
+      MUST run before gtag.js so no storage is written and no measurement is
       sent before a lawful basis exists. Two defaults are declared:
-
-        1. region-scoped DENY for EEA/UK/CH and other opt-in jurisdictions —
-           Google enforces this against the real IP, which is more reliable than
-           any client-side guess.
-        2. a global default for everywhere else: measurement on, advertising
-           signals off (this site runs no ads).
-
-      Keep the region list and the storage keys in sync with src/lib/consent.ts.
+        1. region-scoped DENY for EEA/UK/CH and other prior-consent countries —
+           Google enforces this against the real IP, which beats any client guess;
+        2. a global default elsewhere: measurement on, advertising signals off
+           (this site runs no ads).
+      Keep the region list and storage key in sync with js/consent.js.
     -->
     <script>
       ;(function () {
@@ -117,7 +73,6 @@
           personalization_storage: 'denied',
         }
 
-        // Jurisdictions treated as prior-consent (opt-in) by default.
         var OPT_IN_REGIONS = [
           'AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT',
           'LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE',
@@ -129,15 +84,11 @@
           wait_for_update: 500,
         }))
 
-        // Honour Global Privacy Control / Do Not Track everywhere, not just where
-        // it is legally binding.
         var signalsDeny =
           navigator.globalPrivacyControl === true ||
           navigator.doNotTrack === '1' ||
           window.doNotTrack === '1'
 
-        // Coarse, network-free region hint. Fails safe: anything Europe-ish, or a
-        // timezone we cannot read, is treated as opt-in.
         var tz = ''
         try {
           tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
@@ -161,8 +112,6 @@
               }),
         )
 
-        // Re-apply a stored decision at once, so returning visitors are not
-        // re-prompted and their choice survives a reload.
         try {
           var raw = localStorage.getItem('framebyframe:consent')
           if (raw) {
@@ -179,6 +128,42 @@
       })()
     </script>
 
+    <!-- ==================== Social (SMO) ==================== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FrameByFrame" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://framebyframe.app/" />
+    <meta property="og:title" content="FrameByFrame — Extract Frames From Video, Free & Private" />
+    <meta
+      property="og:description"
+      content="Full-resolution stills from any video, entirely in your browser. Every frame or sampled by interval — PNG, JPEG, WebP, ZIP. No upload, no account, no watermark."
+    />
+    <meta property="og:image" content="https://framebyframe.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="FrameByFrame — a browser-based video frame extractor showing a timeline and extracted stills"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FrameByFrame — Extract Frames From Video, Free & Private" />
+    <meta
+      name="twitter:description"
+      content="Full-resolution stills from any video, entirely in your browser. No upload, no account, no watermark."
+    />
+    <meta name="twitter:image" content="https://framebyframe.app/og.png" />
+    <meta
+      name="twitter:image:alt"
+      content="FrameByFrame — a browser-based video frame extractor showing a timeline and extracted stills"
+    />
+
+    <!-- ==================== Icons & manifest ==================== -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0d'/%3E%3Crect x='6' y='9' width='20' height='14' fill='none' stroke='%23f2f0ec' stroke-width='2'/%3E%3Cpath d='M12 9v14M20 9v14' stroke='%23c2202f' stroke-width='2'/%3E%3C/svg%3E"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z6VDR9K266"></script>
     <script>
@@ -191,13 +176,14 @@
       gtag('config', 'G-Z6VDR9K266')
     </script>
 
-    <!-- ==================== Fonts ==================== -->
+    <!-- ==================== Styles & fonts ==================== -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap"
     />
+    <link rel="stylesheet" href="/styles.css" />
 
     <!-- ==================== Structured data ==================== -->
     <script type="application/ld+json">
@@ -230,7 +216,7 @@
               "PNG, JPEG and WebP output with quality control",
               "Native resolution or longest-edge resizing",
               "Batch ZIP download and contact sheet export",
-              "Runs fully offline — no upload, no account",
+              "Extraction runs fully offline — no upload, no account",
               "Readable in any language via Google page translation"
             ],
             "permissions": "No file access beyond the video you choose; nothing is transmitted"
@@ -306,7 +292,7 @@
                 "name": "Does my video get uploaded anywhere?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "No. The video is decoded by your own browser and drawn to a canvas locally. There is no server component that receives video, which is why the tool continues to work with your network disconnected."
+                  "text": "No. The video is decoded by your own browser and drawn to a canvas locally. There is no server component that receives video, which is why extraction continues to work with your network disconnected."
                 }
               },
               {
@@ -403,8 +389,880 @@
       }
     </script>
   </head>
+
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- ==================== icon sprite ==================== -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V5l8-3 8 3z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 13v8"/><path d="m8 17 4-4 4 4"/><path d="M20.4 14.9A5 5 0 0 0 18 5.5h-1.3A8 8 0 1 0 3 12.9"/></symbol>
+      <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16"/><path d="M8 4v16M16 4v16"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 5 7 7-7 7"/></symbol>
+      <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m5 13 7 7 7-7"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+      <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14"/><path d="M8 21h8M12 17v4"/></symbol>
+      <symbol id="i-languages" viewBox="0 0 24 24"><path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></symbol>
+      <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+      <symbol id="i-skip-back" viewBox="0 0 24 24"><path d="M18 5 8 12l10 7z"/><path d="M5 5v14"/></symbol>
+      <symbol id="i-skip-fwd" viewBox="0 0 24 24"><path d="M6 5l10 7-10 7z"/><path d="M19 5v14"/></symbol>
+      <symbol id="i-step-back" viewBox="0 0 24 24"><path d="M17 5 8 12l9 7z"/><path d="M7 5v14"/></symbol>
+      <symbol id="i-step-fwd" viewBox="0 0 24 24"><path d="M7 5l9 7-9 7z"/><path d="M17 5v14"/></symbol>
+      <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 8h3l2-3h8l2 3h3v12H3z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+      <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M16 9a4 4 0 0 1 0 6"/></symbol>
+      <symbol id="i-mute" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></symbol>
+      <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></symbol>
+      <symbol id="i-zip" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18"/><path d="M11 3v6M13 5v6M11 11h2"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></symbol>
+      <symbol id="i-grid3" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM9 3v18M15 3v18M3 9h18M3 15h18"/></symbol>
+      <symbol id="i-grid1" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12"/><path d="M5 15V3h12"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></symbol>
+      <symbol id="i-select-all" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><path d="m8 12 3 3 5-6"/></symbol>
+      <symbol id="i-select-none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/></symbol>
+      <symbol id="i-invert" viewBox="0 0 24 24"><path d="M3 3h18v18H3z" stroke-dasharray="4 3"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h.01"/></symbol>
+      <symbol id="i-loader" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></symbol>
+    </svg>
+
+    <!-- ==================== header ==================== -->
+    <header class="site-header band" id="site-header">
+      <div class="shell header-inner">
+        <a class="brand-link" href="#top" aria-label="FrameByFrame — home">
+          <span class="wordmark notranslate" translate="no">FRAME<em>BY</em>FRAME</span>
+          <span class="brand-bar" aria-hidden="true"></span>
+          <span class="brand-descriptor">Stills from<br />moving pictures</span>
+        </a>
+
+        <nav class="header-nav" aria-label="Sections">
+          <a href="#extractor">Extractor</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#capabilities">Capabilities</a>
+          <a href="#use-cases">Who uses it</a>
+          <a href="#formats">Formats</a>
+        </nav>
+
+        <div class="header-tools">
+          <button class="btn btn-quiet btn-icon" id="shortcuts-open" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">
+            <svg class="ico" aria-hidden="true"><use href="#i-keyboard" /></svg>
+          </button>
+
+          <div class="pop" id="theme-pop">
+            <button class="btn btn-quiet btn-icon" id="theme-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Theme" title="Theme">
+              <svg class="ico" id="theme-icon" aria-hidden="true"><use href="#i-moon" /></svg>
+            </button>
+            <ul class="pop-panel" id="theme-panel" role="listbox" aria-label="Theme" hidden>
+              <li><button class="pop-item" role="option" data-mode="light"><svg class="ico" aria-hidden="true"><use href="#i-sun"/></svg>Light<svg class="ico tick" aria-hidden="true"><use href="#i-check"/></svg></button></li>
+              <li><button class="pop-item" role="option" data-mode="dark"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg>Dark<svg class="ico tick" aria-hidden="true"><use href="#i-check"/></svg></button></li>
+              <li><button class="pop-item" role="option" data-mode="system"><svg class="ico" aria-hidden="true"><use href="#i-monitor"/></svg>System<svg class="ico tick" aria-hidden="true"><use href="#i-check"/></svg></button></li>
+            </ul>
+          </div>
+
+          <!-- Google page translation. Loads on click, so no third-party
+               request is made until the visitor asks for a translation. -->
+          <div id="translate-mount" class="gt-wrap"></div>
+
+          <button class="btn btn-quiet btn-icon" id="nav-open" aria-label="Open menu" aria-expanded="false">
+            <svg class="ico ico-lg" aria-hidden="true"><use href="#i-menu" /></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== nav overlay ==================== -->
+    <div class="nav-overlay band" id="nav-overlay" role="dialog" aria-modal="true" aria-label="Site menu" hidden>
+      <div class="shell nav-overlay-head">
+        <span class="wordmark notranslate" translate="no">FRAME<em>BY</em>FRAME</span>
+        <button class="btn btn-quiet btn-icon" id="nav-close" aria-label="Close menu" style="margin-inline-start: auto">
+          <svg class="ico ico-lg" aria-hidden="true"><use href="#i-x" /></svg>
+        </button>
+      </div>
+      <div class="rule"></div>
+      <nav class="shell nav-list">
+        <a class="nav-row" href="#extractor"><span class="numeral">01</span><span class="nav-label">Extractor</span><svg class="ico ico-lg nav-arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        <a class="nav-row" href="#how-it-works"><span class="numeral">02</span><span class="nav-label">How it works</span><svg class="ico ico-lg nav-arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        <a class="nav-row" href="#capabilities"><span class="numeral">03</span><span class="nav-label">Capabilities</span><svg class="ico ico-lg nav-arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        <a class="nav-row" href="#use-cases"><span class="numeral">04</span><span class="nav-label">Who uses it</span><svg class="ico ico-lg nav-arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        <a class="nav-row" href="#formats"><span class="numeral">05</span><span class="nav-label">Formats</span><svg class="ico ico-lg nav-arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        <a class="nav-row" href="#privacy"><span class="numeral">06</span><span class="nav-label">Privacy</span><svg class="ico ico-lg nav-arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        <a class="nav-row" href="#faq"><span class="numeral">07</span><span class="nav-label">Questions</span><svg class="ico ico-lg nav-arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        <a class="btn btn-accent" href="#extractor" style="margin-top: 2.5rem; width: 100%; justify-content: space-between; padding: 1.25rem 1.5rem">
+          <span>Open the extractor</span>
+          <svg class="ico" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+        </a>
+      </nav>
+    </div>
+
+    <main>
+      <!-- ==================== hero + tool ==================== -->
+      <section class="hero band" id="top">
+        <div class="hero-wash" aria-hidden="true"></div>
+        <div class="hero-grid" aria-hidden="true"></div>
+
+        <div class="shell hero-inner">
+          <div class="hero-cols" id="hero-cols">
+            <!-- data-hero-only: hidden once the studio takes over the band -->
+            <div class="rise" data-hero-only>
+              <p class="eyebrow">Frame extraction · In-browser · Est. 2026</p>
+
+              <h1 class="display-1 section-title">
+                <span style="display: block">Every frame</span>
+                <span style="display: block">you need,</span>
+                <span style="display: block">nothing</span>
+                <span class="accent-serif" style="display: block">uploaded.</span>
+              </h1>
+
+              <div class="rule-strong hero-rule"></div>
+
+              <p class="lede">
+                Drop in a video and pull out full-resolution stills — one frame, a sampled
+                sequence, or all of them. The decode happens on your own machine, so the file
+                never touches a server.
+              </p>
+
+              <ul class="hero-formats" aria-label="Output formats">
+                <li>PNG</li>
+                <li>JPEG</li>
+                <li>WebP</li>
+                <li>ZIP</li>
+                <li>Contact sheet</li>
+              </ul>
+
+              <a class="scroll-cue" href="#how-it-works" aria-label="Scroll to how it works">
+                <span class="scroll-ring"><svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg></span>
+                <span>Scroll</span>
+              </a>
+            </div>
+
+            <!-- The extractor. Replaced by the studio once a video loads. -->
+            <div class="rise" id="extractor" style="scroll-margin-top: 6rem">
+              <div class="tool-head" data-hero-only>
+                <p class="eyebrow eyebrow-plain eyebrow-accent">
+                  <svg class="ico ico-sm" aria-hidden="true"><use href="#i-shield" /></svg>
+                  Nothing leaves this device
+                </p>
+                <span class="numeral">01</span>
+              </div>
+
+              <div id="tool-mount">
+                <button type="button" class="dropzone" id="dropzone" aria-label="Drop a video here">
+                  <span class="dropzone-tick tl" aria-hidden="true"></span>
+                  <span class="dropzone-tick tr" aria-hidden="true"></span>
+                  <span class="dropzone-tick bl" aria-hidden="true"></span>
+                  <span class="dropzone-tick br" aria-hidden="true"></span>
+                  <span class="dropzone-body">
+                    <span class="dropzone-mark">
+                      <svg class="ico ico-xl" id="dropzone-icon" aria-hidden="true"><use href="#i-upload" /></svg>
+                    </span>
+                    <span style="text-align: center">
+                      <span class="display-3" id="dropzone-title" style="display: block; font-size: clamp(1.25rem, 2.4vw, 1.625rem)">Drop a video here</span>
+                      <span class="dropzone-browse" id="dropzone-browse">
+                        <svg class="ico ico-sm" aria-hidden="true"><use href="#i-plus" /></svg>
+                        Browse your files
+                      </span>
+                    </span>
+                    <span class="rule" style="max-width: 10rem"></span>
+                    <span class="dropzone-hint">MP4, WebM, MOV, MKV, AVI — anything your browser can play</span>
+                  </span>
+                </button>
+
+                <div class="assurances">
+                  <p>Private by design</p>
+                  <p>Frames are saved at the video’s native resolution</p>
+                </div>
+              </div>
+
+              <input type="file" id="file-input" accept="video/*,.mkv,.avi,.mov" hidden />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== marquee ==================== -->
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <div class="marquee-group">
+            <span>Full-resolution stills<i>◆</i></span><span>No upload, no account<i>◆</i></span><span>Frame-accurate stepping<i>◆</i></span><span>Every frame or every nth second<i>◆</i></span><span>PNG · JPEG · WebP<i>◆</i></span><span>Batch ZIP export<i>◆</i></span><span>Range in / out points<i>◆</i></span><span>Extraction works offline<i>◆</i></span><span>Readable in any language<i>◆</i></span>
+          </div>
+          <div class="marquee-group">
+            <span>Full-resolution stills<i>◆</i></span><span>No upload, no account<i>◆</i></span><span>Frame-accurate stepping<i>◆</i></span><span>Every frame or every nth second<i>◆</i></span><span>PNG · JPEG · WebP<i>◆</i></span><span>Batch ZIP export<i>◆</i></span><span>Range in / out points<i>◆</i></span><span>Extraction works offline<i>◆</i></span><span>Readable in any language<i>◆</i></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== stats ==================== -->
+      <section class="band band-alt" aria-label="At a glance">
+        <div class="shell" style="padding-block: 3.5rem">
+          <div class="stats">
+            <div class="stat">
+              <span class="numeral" style="color: var(--ink-3)">01</span>
+              <p class="stat-value">0<span class="stat-unit">bytes</span></p>
+              <p class="stat-caption">Uploaded to any server</p>
+            </div>
+            <div class="stat">
+              <span class="numeral" style="color: var(--ink-3)">02</span>
+              <p class="stat-value">3<span class="stat-unit">formats</span></p>
+              <p class="stat-caption">PNG, JPEG and WebP output</p>
+            </div>
+            <div class="stat">
+              <span class="numeral" style="color: var(--ink-3)">03</span>
+              <p class="stat-value">4<span class="stat-unit">modes</span></p>
+              <p class="stat-caption">Ways to sample a timeline</p>
+            </div>
+            <div class="stat">
+              <span class="numeral" style="color: var(--ink-3)">04</span>
+              <p class="stat-value">100<span class="stat-unit">+ languages</span></p>
+              <p class="stat-caption">Via Google page translation</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== the idea ==================== -->
+      <section class="band band-alt" aria-labelledby="idea-h">
+        <div class="rule"></div>
+        <div class="shell section">
+          <p class="eyebrow">01 — The idea</p>
+          <h2 class="display-2 section-title" id="idea-h" style="max-width: 48rem">
+            Made in the open,
+            <span class="accent-serif">run on your desk.</span>
+          </h2>
+
+          <div class="prose-cols">
+            <p class="prose-body" style="color: var(--ink); font-size: 1.0625rem">
+              Most tools that turn a video into images ask you to hand the video over first.
+              The file goes up, something happens on a machine you cannot see, and a ZIP comes
+              back. For a holiday clip that is merely inconvenient. For an unreleased cut, a
+              medical scan, a client interview or a screen recording of your own dashboard, it
+              is a decision you should not have to make.
+            </p>
+            <p class="prose-body prose-muted">
+              <span class="notranslate" translate="no">FrameByFrame</span> does the work where
+              the file already is. Your browser has a video decoder and a canvas; that is
+              genuinely all frame extraction needs. Load the page once and extraction keeps
+              working with the network switched off, because there is no server in the loop to
+              talk to.
+            </p>
+          </div>
+
+          <div class="rule" style="margin-top: 3rem"></div>
+          <a class="link-arrow" href="#how-it-works" style="margin-top: 1.75rem">
+            Read the method
+            <svg class="ico" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+          </a>
+        </div>
+      </section>
+
+      <!-- ==================== how it works ==================== -->
+      <section class="band band-alt" id="how-it-works" aria-labelledby="how-h" style="scroll-margin-top: 5rem">
+        <div class="shell section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">02 — How it works</p>
+              <h2 class="display-2 section-title" id="how-h">
+                Four steps.
+                <span class="accent-serif">No sign-up.</span>
+              </h2>
+            </div>
+            <p class="lede">
+              From a file on your desktop to a folder of numbered stills, without an account or
+              an upload.
+            </p>
+          </div>
+
+          <ol class="steps">
+            <li class="step">
+              <span class="numeral">01</span>
+              <h3>Load the video</h3>
+              <p class="prose-body prose-muted">
+                Drag a file anywhere onto the page, browse for it, or paste it from the
+                clipboard. <span class="notranslate" translate="no">FrameByFrame</span> reads
+                the duration, native dimensions and true frame rate, measuring the rate from
+                real presentation timestamps rather than assuming 30fps.
+              </p>
+            </li>
+            <li class="step">
+              <span class="numeral">02</span>
+              <h3>Find your range</h3>
+              <p class="prose-body prose-muted">
+                Scrub the filmstrip timeline, step one frame at a time, and set in and out
+                points to bracket the part you care about. Everything downstream respects that
+                range, so a two-second moment in a two-hour recording costs two seconds of work.
+              </p>
+            </li>
+            <li class="step">
+              <span class="numeral">03</span>
+              <h3>Choose how to sample</h3>
+              <p class="prose-body prose-muted">
+                Take one frame every N seconds, sample at a chosen frame rate, spread a fixed
+                number of frames evenly, or capture every single source frame. A live estimate
+                shows the frame count and total size before you commit.
+              </p>
+            </li>
+            <li class="step">
+              <span class="numeral">04</span>
+              <h3>Export</h3>
+              <p class="prose-body prose-muted">
+                Frames stream into the gallery as they encode. Keep the ones you want, then
+                download them individually, bundle the selection as a ZIP, or tile them into a
+                single labelled contact sheet.
+              </p>
+            </li>
+          </ol>
+          <div class="rule"></div>
+        </div>
+      </section>
+
+      <!-- ==================== capabilities ==================== -->
+      <section class="band" id="capabilities" aria-labelledby="cap-h" style="scroll-margin-top: 5rem">
+        <div class="shell section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">03 — Capabilities</p>
+              <h2 class="display-2 section-title" id="cap-h">
+                A real editor,
+                <span class="accent-serif">not a file drop.</span>
+              </h2>
+            </div>
+            <p class="lede">
+              The parts that usually get cut from a free web tool: precision, batching, and
+              knowing what you are about to export.
+            </p>
+          </div>
+
+          <div class="cap-grid">
+            <article class="cap">
+              <div class="cap-head"><span class="numeral">01</span><h3>Frame-accurate navigation</h3></div>
+              <p class="prose-body prose-muted">
+                Step forward and back a single frame at a time using the video’s measured rate,
+                with a filmstrip timeline, hover-preview thumbnails and a millisecond timecode
+                readout. Standard rates like 23.976, 29.97 and 59.94 are detected and snapped,
+                so stepping lands where you expect.
+              </p>
+            </article>
+            <article class="cap">
+              <div class="cap-head"><span class="numeral">02</span><h3>Four sampling modes</h3></div>
+              <p class="prose-body prose-muted">
+                Interval, target frame rate, fixed count spread evenly across the range, or
+                every source frame. Interval and count modes seek to exact timestamps;
+                every-frame runs capture during playback instead, avoiding a keyframe hunt on
+                each frame.
+              </p>
+            </article>
+            <article class="cap">
+              <div class="cap-head"><span class="numeral">03</span><h3>Range in and out points</h3></div>
+              <p class="prose-body prose-muted">
+                Draggable, keyboard-adjustable handles on the timeline restrict extraction to a
+                segment. Long recordings stop being all-or-nothing.
+              </p>
+            </article>
+            <article class="cap">
+              <div class="cap-head"><span class="numeral">04</span><h3>Format and resolution control</h3></div>
+              <p class="prose-body prose-muted">
+                PNG for lossless work, JPEG for size, WebP for both — with a quality slider for
+                the lossy formats. Keep the native resolution or cap the longest edge at 1920,
+                1280 or 640. <span class="notranslate" translate="no">FrameByFrame</span> never
+                upscales, and the format list is probed against your browser’s real encoder
+                support rather than assumed.
+              </p>
+            </article>
+            <article class="cap">
+              <div class="cap-head"><span class="numeral">05</span><h3>Batch export that scales</h3></div>
+              <p class="prose-body prose-muted">
+                Frames stream in as they encode, with progress and a running estimate. Cancel at
+                any point and everything already extracted is kept. Download the lot as a ZIP,
+                or a subset — shift-click selects ranges.
+              </p>
+            </article>
+            <article class="cap">
+              <div class="cap-head"><span class="numeral">06</span><h3>Predictable file names</h3></div>
+              <p class="prose-body prose-muted">
+                Name by frame number, timecode, or both, zero-padded to the size of the batch so
+                a folder of stills sorts correctly in every file manager.
+              </p>
+            </article>
+            <article class="cap">
+              <div class="cap-head"><span class="numeral">07</span><h3>Contact sheets</h3></div>
+              <p class="prose-body prose-muted">
+                Tile any selection into one labelled JPEG. Useful for choosing a thumbnail,
+                reviewing coverage, or attaching a visual summary to a ticket.
+              </p>
+            </article>
+            <article class="cap">
+              <div class="cap-head"><span class="numeral">08</span><h3>Built for the keyboard</h3></div>
+              <p class="prose-body prose-muted">
+                Play, step, jump, mark in and out, capture, select all and start extraction
+                without leaving the keys. Press ? for the full list.
+              </p>
+            </article>
+          </div>
+          <div class="rule"></div>
+        </div>
+      </section>
+
+      <!-- ==================== who uses it ==================== -->
+      <section class="band band-alt" id="use-cases" aria-labelledby="uses-h" style="scroll-margin-top: 5rem">
+        <div class="shell section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">04 — Who uses it</p>
+              <h2 class="display-2 section-title" id="uses-h">
+                Different jobs,
+                <span class="accent-serif">same need.</span>
+              </h2>
+            </div>
+            <p class="lede">
+              A still from a specific moment, at full quality, without a round trip to somebody
+              else’s server.
+            </p>
+          </div>
+
+          <div class="card-grid">
+            <article>
+              <span class="numeral">01</span>
+              <h3>Editors and motion designers</h3>
+              <p>Pull a reference frame for a match cut, grab a plate for rotoscoping, or export a sequence to check timing outside the NLE.</p>
+            </article>
+            <article>
+              <span class="numeral">02</span>
+              <h3>Thumbnail selection</h3>
+              <p>Sample a video every second, review the grid, and pick the frame that actually sells the video instead of accepting an auto-generated one.</p>
+            </article>
+            <article>
+              <span class="numeral">03</span>
+              <h3>Machine learning datasets</h3>
+              <p>Turn footage into training images at a controlled sample rate and a fixed longest edge, named in a stable order — without pushing source video into a third-party pipeline.</p>
+            </article>
+            <article>
+              <span class="numeral">04</span>
+              <h3>Sports and movement analysis</h3>
+              <p>Step through a technique frame by frame at the real capture rate, and export the sequence that shows the moment of contact.</p>
+            </article>
+            <article>
+              <span class="numeral">05</span>
+              <h3>QA and bug reports</h3>
+              <p>Extract the exact frames where a screen recording goes wrong, then attach a contact sheet so the whole regression is visible at a glance.</p>
+            </article>
+            <article>
+              <span class="numeral">06</span>
+              <h3>Research and sensitive footage</h3>
+              <p>Interviews, clinical recordings and legal material can be processed without leaving the device, which keeps the handling story simple.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== formats ==================== -->
+      <section class="band" id="formats" aria-labelledby="formats-h" style="scroll-margin-top: 5rem">
+        <div class="shell section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">05 — Formats</p>
+              <h2 class="display-2 section-title" id="formats-h">
+                If your browser
+                <span class="accent-serif">plays it, we read it.</span>
+              </h2>
+            </div>
+            <p class="lede">
+              <span class="notranslate" translate="no">FrameByFrame</span> decodes with the same
+              engine that plays video on the rest of the web, so support follows your browser
+              rather than a server-side converter.
+            </p>
+          </div>
+
+          <div class="format-cols">
+            <div>
+              <div class="table-head"><span class="numeral">01</span><h3>Input</h3></div>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr><th scope="col">Format</th><th scope="col">Codec / kind</th><th scope="col">Notes</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><th scope="row">MP4 / M4V</th><td>H.264, HEVC*, AV1*</td><td>Broadest support; the safest bet everywhere</td></tr>
+                    <tr><th scope="row">WebM</th><td>VP8, VP9, AV1</td><td>Fully supported in Chrome, Firefox and Edge</td></tr>
+                    <tr><th scope="row">MOV</th><td>H.264, HEVC*</td><td>Reliable in Safari; usually fine in Chrome</td></tr>
+                    <tr><th scope="row">MKV</th><td>Varies</td><td>Depends on the codec inside the container</td></tr>
+                    <tr><th scope="row">AVI / MPG</th><td>Legacy</td><td>Older codecs may not decode — convert first if so</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="table-note">
+                * HEVC and AV1 depend on your operating system and hardware. If a file will not
+                open, it means the browser cannot decode it; converting to MP4 (H.264) or WebM
+                resolves it.
+              </p>
+            </div>
+
+            <div>
+              <div class="table-head"><span class="numeral">02</span><h3>Output</h3></div>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr><th scope="col">Format</th><th scope="col">Codec / kind</th><th scope="col">Notes</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><th scope="row">PNG</th><td>Lossless</td><td>Largest files; correct choice for archival and compositing</td></tr>
+                    <tr><th scope="row">JPEG</th><td>Lossy, adjustable</td><td>Best size-to-quality balance for review and datasets</td></tr>
+                    <tr><th scope="row">WebP</th><td>Lossy, adjustable</td><td>Roughly 25–35% smaller than JPEG at similar quality</td></tr>
+                    <tr><th scope="row">ZIP</th><td>Bundle</td><td>Stored, not re-compressed — fast, since images are already compressed</td></tr>
+                    <tr><th scope="row">JPEG sheet</th><td>Contact sheet</td><td>One tiled, timecode-labelled overview image</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== privacy ==================== -->
+      <section class="band band-alt" id="privacy" aria-labelledby="privacy-h" style="scroll-margin-top: 5rem">
+        <div class="shell section">
+          <p class="eyebrow">06 — Privacy</p>
+          <h2 class="display-2 section-title" id="privacy-h" style="max-width: 48rem">
+            The file stays
+            <span class="accent-serif">on your machine.</span>
+          </h2>
+
+          <div class="pillars">
+            <article class="pillar">
+              <span class="numeral">01</span>
+              <h3>No upload step</h3>
+              <p>Your video is read through a local object URL and decoded by the browser. There is no request that carries it anywhere, because there is no backend to receive it.</p>
+            </article>
+            <article class="pillar">
+              <span class="numeral">02</span>
+              <h3>No account, no queue</h3>
+              <p>Nothing to sign up for, no credits, no watermark, and no waiting behind other people’s jobs. Speed depends on your own machine.</p>
+            </article>
+            <article class="pillar">
+              <span class="numeral">03</span>
+              <h3>Extraction works offline</h3>
+              <p>Once the page has loaded, extraction itself needs no network at all. Disconnect and it keeps working — the plainest proof your video is not being sent anywhere.</p>
+            </article>
+            <article class="pillar">
+              <span class="numeral">04</span>
+              <h3>Nothing retained</h3>
+              <p>Frames live in memory for the session. Close the tab and they are gone; only what you explicitly downloaded remains on disk.</p>
+            </article>
+            <article class="pillar">
+              <span class="numeral">05</span>
+              <h3>What we do measure</h3>
+              <p>
+                The page can load Google Analytics for aggregate visit statistics, and Google’s
+                translation widget once you pick a language. Both set cookies and see your IP
+                address, and translation sends the page’s visible text — never your video, and
+                never any extracted frame — to Google. In the EEA, UK, Switzerland and other
+                prior-consent countries nothing loads until you accept; elsewhere you get a
+                notice and a one-click opt-out. Global Privacy Control and Do Not Track are
+                honoured everywhere. Change your mind any time via Privacy choices in the footer.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== FAQ ==================== -->
+      <section class="band" id="faq" aria-labelledby="faq-h" style="scroll-margin-top: 5rem">
+        <div class="shell section">
+          <p class="eyebrow">07 — Questions</p>
+          <h2 class="display-2 section-title" id="faq-h" style="max-width: 48rem">
+            Answers before
+            <span class="accent-serif">you need them.</span>
+          </h2>
+
+          <dl class="faq" id="faq-list">
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="true" aria-controls="faq-a-1">
+                  <span class="numeral">01</span>
+                  <span class="faq-text">Is <span class="notranslate" translate="no">FrameByFrame</span> really free, and is there a watermark?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-1"><p class="prose-body">Yes, it is free, and there is no watermark, no export cap and no account. Frames come out at the resolution and quality you choose, with nothing added to the image.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-2">
+                  <span class="numeral">02</span>
+                  <span class="faq-text">Does my video get uploaded anywhere?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-2" hidden><p class="prose-body">No. The video is decoded by your own browser and drawn to a canvas locally. There is no server component that receives video, which is why extraction continues to work with your network disconnected.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-3">
+                  <span class="numeral">03</span>
+                  <span class="faq-text">How do I extract every single frame from a video?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-3" hidden><p class="prose-body">Load the video, choose the “Every frame” sampling mode, and start extraction. <span class="notranslate" translate="no">FrameByFrame</span> plays the video and captures each presented frame using its real presentation timestamp, which is far faster than seeking once per frame. Bear in mind that a one-minute clip at 60fps is 3,600 images, so it is usually worth setting in and out points first.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-4">
+                  <span class="numeral">04</span>
+                  <span class="faq-text">What is the best format — PNG, JPEG or WebP?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-4" hidden><p class="prose-body">Choose PNG when the frames feed into compositing or archiving and you cannot accept compression artefacts. Choose JPEG for review, contact sheets and most datasets, since it gives the best size-to-quality balance. Choose WebP when you want JPEG-like quality about 25–35% smaller and you know your downstream tools read it.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-5">
+                  <span class="numeral">05</span>
+                  <span class="faq-text">Will the extracted frames match the original quality?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-5" hidden><p class="prose-body">Frames are drawn at the video’s native resolution by default, so there is no scaling loss. Beyond that, quality depends on your output choice: PNG is lossless, while JPEG and WebP re-encode at the quality you set. The decoded frame itself is exactly what the browser plays.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-6">
+                  <span class="numeral">06</span>
+                  <span class="faq-text">Why does the frame rate show as “estimated”?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-6" hidden><p class="prose-body"><span class="notranslate" translate="no">FrameByFrame</span> measures the true frame rate from real video frame callbacks and snaps the result to the nearest standard rate. In browsers without that API it falls back to 30fps and labels the value estimated, which only affects single-frame stepping and every-frame runs — interval, rate and count sampling are unaffected.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-7">
+                  <span class="numeral">07</span>
+                  <span class="faq-text">What is the largest video I can use?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-7" hidden><p class="prose-body">There is no fixed limit, because the file is never transferred. Practically, the ceiling is your device’s memory and how many frames you extract at once. Very long recordings are best handled by setting in and out points, or by sampling at an interval rather than capturing every frame.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-8">
+                  <span class="numeral">08</span>
+                  <span class="faq-text">My file will not open. What now?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-8" hidden><p class="prose-body">That means your browser cannot decode that particular codec, not that the file is broken. It is most common with HEVC, older AVI codecs and some MKV contents. Converting the file to MP4 (H.264) or WebM fixes it, as does trying a different browser — Safari and Chrome support different codec sets.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-9">
+                  <span class="numeral">09</span>
+                  <span class="faq-text">Can I extract frames from a YouTube or streaming URL?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-9" hidden><p class="prose-body">No. <span class="notranslate" translate="no">FrameByFrame</span> works on video files you already have on your device. It does not download from streaming services, which would breach their terms and, for most content, copyright.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-10">
+                  <span class="numeral">10</span>
+                  <span class="faq-text">Does it work on a phone or tablet?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-10" hidden><p class="prose-body">Yes. The interface adapts to small screens and works with touch, including the timeline range handles. Extraction speed and how many frames you can hold at once are more limited on mobile hardware than on a desktop.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-11">
+                  <span class="numeral">11</span>
+                  <span class="faq-text">How are the exported files named?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-11" hidden><p class="prose-body">You choose: frame number, timecode, or both, prefixed with the source file name. Numbers are zero-padded to the size of the batch, so the stills sort correctly in any file manager.</p></dd>
+            </div>
+
+            <div class="faq-item">
+              <dt>
+                <button class="faq-q" aria-expanded="false" aria-controls="faq-a-12">
+                  <span class="numeral">12</span>
+                  <span class="faq-text">Can I get one image instead of a batch?</span>
+                  <span class="faq-sign"><svg class="ico ico-sm plus" aria-hidden="true"><use href="#i-plus"/></svg><svg class="ico ico-sm minus" aria-hidden="true"><use href="#i-minus"/></svg></span>
+                </button>
+              </dt>
+              <dd class="faq-a" id="faq-a-12" hidden><p class="prose-body">Yes. Scrub to the moment you want, step to the exact frame, and use “Capture this frame” — or press C. It lands in the gallery for download on its own, with no extraction run needed.</p></dd>
+            </div>
+          </dl>
+          <div class="rule"></div>
+        </div>
+      </section>
+
+      <!-- ==================== CTA ==================== -->
+      <section class="band" aria-labelledby="cta-h">
+        <div class="shell" style="padding-block: 4rem">
+          <h2 class="display-2" id="cta-h">
+            Drop a video in.
+            <span class="accent-serif">It stays yours.</span>
+          </h2>
+          <p class="lede" style="margin-top: 1.5rem">
+            No upload, no account, no watermark. Frame extraction keeps working with the network
+            switched off.
+          </p>
+        </div>
+        <a class="cta-bar" href="#extractor">
+          <span>Open the extractor</span>
+          <svg class="ico" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+        </a>
+      </section>
+    </main>
+
+    <!-- ==================== footer ==================== -->
+    <footer class="band band-alt">
+      <div class="rule"></div>
+      <div class="shell" style="padding-block: 3.5rem">
+        <div class="footer-cols">
+          <div>
+            <span class="wordmark notranslate" translate="no" style="font-size: 1.25rem">FRAME<em>BY</em>FRAME</span>
+            <p class="prose-body prose-muted" style="margin-top: 1.25rem; max-width: 24rem; font-size: 0.9375rem">
+              <span class="notranslate" translate="no">FrameByFrame</span> is a free,
+              browser-based video frame extractor. Video decoding and image encoding happen
+              entirely on your device — no file is ever transmitted.
+            </p>
+          </div>
+
+          <nav class="footer-nav" aria-label="Footer">
+            <div>
+              <h2>Tool</h2>
+              <ul>
+                <li><a href="#extractor">Frame extractor</a></li>
+                <li><a href="#how-it-works">How it works</a></li>
+                <li><a href="#capabilities">Capabilities</a></li>
+                <li><a href="#formats">Supported formats</a></li>
+              </ul>
+            </div>
+            <div>
+              <h2>Tasks</h2>
+              <ul>
+                <li><a href="#extractor">Video to JPG</a></li>
+                <li><a href="#extractor">Video to PNG</a></li>
+                <li><a href="#faq">Extract all frames</a></li>
+                <li><a href="#capabilities">Make a contact sheet</a></li>
+              </ul>
+            </div>
+            <div>
+              <h2>About</h2>
+              <ul>
+                <li><a href="#privacy">Privacy model</a></li>
+                <li><a href="#faq">Questions</a></li>
+                <li><button type="button" id="footer-shortcuts">Keyboard shortcuts</button></li>
+                <li><button type="button" id="footer-privacy">Privacy choices</button></li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+
+        <div class="rule" style="margin-top: 3.5rem"></div>
+        <div class="footer-legal">
+          <p>
+            Your video is processed in your browser and never uploaded. No accounts. This site
+            uses Google Analytics.
+          </p>
+          <p class="mono">© <span id="year">2026</span> <span class="notranslate" translate="no">FrameByFrame</span></p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ==================== shortcuts dialog ==================== -->
+    <div class="overlay" id="shortcuts-overlay" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" tabindex="-1">
+        <div class="dialog-head">
+          <span class="numeral">04</span>
+          <h2>Keyboard shortcuts</h2>
+          <button class="btn btn-quiet btn-icon" id="shortcuts-close" aria-label="Close">
+            <svg class="ico" aria-hidden="true"><use href="#i-x" /></svg>
+          </button>
+        </div>
+        <dl class="shortcut-list">
+          <div class="shortcut-row"><dd>Play / pause</dd><dt>Space / K</dt></div>
+          <div class="shortcut-row"><dd>Step one frame</dd><dt>, / .</dt></div>
+          <div class="shortcut-row"><dd>Jump one second</dd><dt>← / →</dt></div>
+          <div class="shortcut-row"><dd>Capture current frame</dd><dt>C</dt></div>
+          <div class="shortcut-row"><dd>Set range start / end</dd><dt>I / O</dt></div>
+          <div class="shortcut-row"><dd>Start extraction</dd><dt>Enter</dt></div>
+          <div class="shortcut-row"><dd>Select all frames</dd><dt>⌘/Ctrl + A</dt></div>
+          <div class="shortcut-row"><dd>Show this help</dd><dt>?</dt></div>
+          <div class="shortcut-row"><dd>Close</dd><dt>Esc</dt></div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- ==================== consent ==================== -->
+    <div class="consent-scrim" id="consent-scrim" hidden></div>
+    <div class="consent band" id="consent" role="dialog" aria-label="Privacy and cookie choices" hidden>
+      <div class="shell consent-inner">
+        <div class="consent-copy">
+          <p class="eyebrow eyebrow-plain eyebrow-accent">
+            <svg class="ico ico-sm" aria-hidden="true"><use href="#i-shield" /></svg>
+            <span id="consent-heading">How this site measures traffic</span>
+          </p>
+          <p class="prose-body">
+            Your video never leaves this device and is never uploaded — that does not change.
+            Separately, this page can load <strong>Google Analytics</strong> to count visits,
+            which sets cookies and shares your IP address with Google.
+            <span id="consent-tail">You can turn it off at any time.</span>
+          </p>
+
+          <dl class="consent-detail" id="consent-detail" hidden>
+            <div>
+              <dt>Essential <span class="req">Always on</span></dt>
+              <dd>Your theme and consent choices, kept in local storage on this device. Never shared.</dd>
+            </div>
+            <div>
+              <dt>Analytics <span class="opt">Your choice</span></dt>
+              <dd>Google Analytics 4 — aggregate visit counts. Sets cookies and sees your IP. No advertising or profiling signals are ever enabled.</dd>
+            </div>
+          </dl>
+
+          <button type="button" class="link-arrow" id="consent-details-toggle" aria-expanded="false" style="margin-top: 1rem">
+            What gets stored
+          </button>
+        </div>
+
+        <div class="consent-actions">
+          <button class="btn btn-accent btn-block" id="consent-accept">
+            <svg class="ico" aria-hidden="true"><use href="#i-check" /></svg>
+            Accept analytics
+          </button>
+          <button class="btn btn-outline btn-block" id="consent-reject">
+            <svg class="ico" aria-hidden="true"><use href="#i-x" /></svg>
+            <span id="consent-reject-label">Opt out of analytics</span>
+          </button>
+          <button class="btn btn-quiet btn-block" id="consent-close" hidden>Close</button>
+          <p class="consent-state" id="consent-state" hidden></p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/js/main.js"></script>
   </body>
 </html>
