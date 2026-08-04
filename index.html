@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ==================== Primary ==================== -->
+    <title>FrameByFrame — Extract Frames From Video Online, Free &amp; Private (No Upload)</title>
+    <meta
+      name="description"
+      content="Pull full-resolution stills out of any video, free and entirely in your browser. Export every frame or sample by interval as PNG, JPEG or WebP, then download as a ZIP. Nothing is uploaded — your file never leaves your device."
+    />
+    <meta
+      name="keywords"
+      content="video frame extractor, extract frames from video, video to images, video to JPG, video to PNG, MP4 to JPG, get still image from video, frame by frame video viewer, extract all frames from MP4, free online frame extractor, no upload video tool, export video stills"
+    />
+    <link rel="canonical" href="https://framebyframe.app/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="author" content="FrameByFrame" />
+    <meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f2f0ec" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="light dark" />
+
+    <!--
+      Theme bootstrap. Runs before first paint so the page never flashes the
+      wrong theme while React boots. Must produce the same result as
+      applyTheme() in src/lib/theme.ts — keep the two in sync.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('framebyframe:theme')
+          var mode = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
+          var dark =
+            mode === 'dark' ||
+            (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          var root = document.documentElement
+          root.classList.toggle('dark', dark)
+          root.style.colorScheme = dark ? 'dark' : 'light'
+          root.dataset.theme = dark ? 'dark' : 'light'
+        } catch (e) {
+          /* storage blocked — React will apply the theme on mount instead */
+        }
+      })()
+    </script>
+    <meta name="application-name" content="FrameByFrame" />
+    <meta name="apple-mobile-web-app-title" content="FrameByFrame" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+
+
+    <!-- ==================== Social (SMO) ==================== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FrameByFrame" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://framebyframe.app/" />
+    <meta property="og:title" content="FrameByFrame — Extract Frames From Video, Free & Private" />
+    <meta
+      property="og:description"
+      content="Full-resolution stills from any video, entirely in your browser. Every frame or sampled by interval — PNG, JPEG, WebP, ZIP. No upload, no account, no watermark."
+    />
+    <meta property="og:image" content="https://framebyframe.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="FrameByFrame — a browser-based video frame extractor showing a timeline and extracted stills"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FrameByFrame — Extract Frames From Video, Free & Private" />
+    <meta
+      name="twitter:description"
+      content="Full-resolution stills from any video, entirely in your browser. No upload, no account, no watermark."
+    />
+    <meta name="twitter:image" content="https://framebyframe.app/og.png" />
+    <meta
+      name="twitter:image:alt"
+      content="FrameByFrame — a browser-based video frame extractor showing a timeline and extracted stills"
+    />
+
+    <!-- ==================== Icons & manifest ==================== -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0d'/%3E%3Crect x='6' y='9' width='20' height='14' fill='none' stroke='%23f2f0ec' stroke-width='2'/%3E%3Cpath d='M12 9v14M20 9v14' stroke='%23c2202f' stroke-width='2'/%3E%3C/svg%3E"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!--
+      Google Consent Mode v2 defaults.
+
+      This MUST run before gtag.js so no storage is written and no measurement is
+      sent before a lawful basis exists. Two defaults are declared:
+
+        1. region-scoped DENY for EEA/UK/CH and other opt-in jurisdictions —
+           Google enforces this against the real IP, which is more reliable than
+           any client-side guess.
+        2. a global default for everywhere else: measurement on, advertising
+           signals off (this site runs no ads).
+
+      Keep the region list and the storage keys in sync with src/lib/consent.ts.
+    -->
+    <script>
+      ;(function () {
+        window.dataLayer = window.dataLayer || []
+        function gtag() {
+          dataLayer.push(arguments)
+        }
+        window.gtag = gtag
+
+        var DENY = {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+          functionality_storage: 'denied',
+          personalization_storage: 'denied',
+        }
+
+        // Jurisdictions treated as prior-consent (opt-in) by default.
+        var OPT_IN_REGIONS = [
+          'AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT',
+          'LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE',
+          'IS','LI','NO','GB','CH','BR','KR','TH',
+        ]
+
+        gtag('consent', 'default', Object.assign({}, DENY, {
+          region: OPT_IN_REGIONS,
+          wait_for_update: 500,
+        }))
+
+        // Honour Global Privacy Control / Do Not Track everywhere, not just where
+        // it is legally binding.
+        var signalsDeny =
+          navigator.globalPrivacyControl === true ||
+          navigator.doNotTrack === '1' ||
+          window.doNotTrack === '1'
+
+        // Coarse, network-free region hint. Fails safe: anything Europe-ish, or a
+        // timezone we cannot read, is treated as opt-in.
+        var tz = ''
+        try {
+          tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+        } catch (e) {}
+        var euLike =
+          !tz ||
+          /^Europe\//.test(tz) ||
+          /^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe)/.test(tz) ||
+          /^Asia\/(Nicosia|Famagusta|Seoul|Bangkok)/.test(tz) ||
+          /^America\/(Sao_Paulo|Bahia|Fortaleza|Recife|Manaus|Belem|Cuiaba|Campo_Grande)/.test(tz)
+
+        gtag(
+          'consent',
+          'default',
+          signalsDeny || euLike
+            ? DENY
+            : Object.assign({}, DENY, {
+                analytics_storage: 'granted',
+                functionality_storage: 'granted',
+                security_storage: 'granted',
+              }),
+        )
+
+        // Re-apply a stored decision at once, so returning visitors are not
+        // re-prompted and their choice survives a reload.
+        try {
+          var raw = localStorage.getItem('framebyframe:consent')
+          if (raw) {
+            var saved = JSON.parse(raw)
+            gtag('consent', 'update', {
+              analytics_storage: saved.analytics ? 'granted' : 'denied',
+              functionality_storage: saved.analytics ? 'granted' : 'denied',
+              ad_storage: 'denied',
+              ad_user_data: 'denied',
+              ad_personalization: 'denied',
+            })
+          }
+        } catch (e) {}
+      })()
+    </script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z6VDR9K266"></script>
+    <script>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+
+      gtag('config', 'G-Z6VDR9K266')
+    </script>
+
+    <!-- ==================== Fonts ==================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap"
+    />
+
+    <!-- ==================== Structured data ==================== -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "@id": "https://framebyframe.app/#app",
+            "name": "FrameByFrame",
+            "alternateName": "FrameByFrame Video Frame Extractor",
+            "url": "https://framebyframe.app/",
+            "applicationCategory": "MultimediaApplication",
+            "applicationSubCategory": "Video Frame Extractor",
+            "operatingSystem": "Any (web browser)",
+            "browserRequirements": "Requires JavaScript and a browser with HTML5 video support",
+            "isAccessibleForFree": true,
+            "inLanguage": "en",
+            "description": "Free browser-based video frame extractor. Export full-resolution stills from any video as PNG, JPEG or WebP without uploading the file.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            },
+            "featureList": [
+              "Extract every frame or sample by interval, frame rate or fixed count",
+              "Frame-accurate stepping with measured frame rate detection",
+              "Timeline range in and out points",
+              "PNG, JPEG and WebP output with quality control",
+              "Native resolution or longest-edge resizing",
+              "Batch ZIP download and contact sheet export",
+              "Runs fully offline — no upload, no account",
+              "Readable in any language via Google page translation"
+            ],
+            "permissions": "No file access beyond the video you choose; nothing is transmitted"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://framebyframe.app/#website",
+            "url": "https://framebyframe.app/",
+            "name": "FrameByFrame",
+            "description": "Extract frames from video in your browser — free, private, no upload.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://framebyframe.app/#org" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://framebyframe.app/#org",
+            "name": "FrameByFrame",
+            "url": "https://framebyframe.app/",
+            "description": "Privacy-first browser tools for working with video."
+          },
+          {
+            "@type": "HowTo",
+            "@id": "https://framebyframe.app/#howto",
+            "name": "How to extract frames from a video in your browser",
+            "description": "Turn a video file into full-resolution still images without uploading it anywhere.",
+            "totalTime": "PT2M",
+            "tool": [{ "@type": "HowToTool", "name": "FrameByFrame (web browser)" }],
+            "step": [
+              {
+                "@type": "HowToStep",
+                "position": 1,
+                "name": "Load the video",
+                "text": "Drag a video file onto the page, browse for it, or paste it from the clipboard. FrameByFrame reads the duration, native dimensions and true frame rate locally.",
+                "url": "https://framebyframe.app/#extractor"
+              },
+              {
+                "@type": "HowToStep",
+                "position": 2,
+                "name": "Find your range",
+                "text": "Scrub the filmstrip timeline, step frame by frame, and set in and out points so only the segment you care about is extracted.",
+                "url": "https://framebyframe.app/#extractor"
+              },
+              {
+                "@type": "HowToStep",
+                "position": 3,
+                "name": "Choose how to sample",
+                "text": "Pick one frame every N seconds, a target frame rate, a fixed number spread evenly, or every source frame. Check the live frame count and size estimate.",
+                "url": "https://framebyframe.app/#how-it-works"
+              },
+              {
+                "@type": "HowToStep",
+                "position": 4,
+                "name": "Export the frames",
+                "text": "Select the frames you want, then download them individually, as a ZIP, or tiled into a single contact sheet.",
+                "url": "https://framebyframe.app/#extractor"
+              }
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://framebyframe.app/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is FrameByFrame really free, and is there a watermark?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, it is free, and there is no watermark, no export cap and no account. Frames come out at the resolution and quality you choose, with nothing added to the image."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does my video get uploaded anywhere?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. The video is decoded by your own browser and drawn to a canvas locally. There is no server component that receives video, which is why the tool continues to work with your network disconnected."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I extract every single frame from a video?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Load the video, choose the Every frame sampling mode, and start extraction. FrameByFrame plays the video and captures each presented frame using its real presentation timestamp, which is far faster than seeking once per frame. Bear in mind that a one-minute clip at 60fps is 3,600 images, so it is usually worth setting in and out points first."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What is the best format — PNG, JPEG or WebP?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Choose PNG when the frames feed into compositing or archiving and you cannot accept compression artefacts. Choose JPEG for review, contact sheets and most datasets, since it gives the best size-to-quality balance. Choose WebP when you want JPEG-like quality about 25 to 35 percent smaller and you know your downstream tools read it."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Will the extracted frames match the original quality?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Frames are drawn at the video's native resolution by default, so there is no scaling loss. Beyond that, quality depends on your output choice: PNG is lossless, while JPEG and WebP re-encode at the quality you set. The decoded frame itself is exactly what the browser plays."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Why does the frame rate show as estimated?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "FrameByFrame measures the true frame rate from real video frame callbacks and snaps the result to the nearest standard rate. In browsers without that API it falls back to 30fps and labels the value estimated, which only affects single-frame stepping and every-frame runs — interval, rate and count sampling are unaffected."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What is the largest video I can use?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "There is no fixed limit, because the file is never transferred. Practically, the ceiling is your device's memory and how many frames you extract at once. Very long recordings are best handled by setting in and out points, or by sampling at an interval rather than capturing every frame."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "My file will not open. What now?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "That means your browser cannot decode that particular codec, not that the file is broken. It is most common with HEVC, older AVI codecs and some MKV contents. Converting the file to MP4 (H.264) or WebM fixes it, as does trying a different browser — Safari and Chrome support different codec sets."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I extract frames from a YouTube or streaming URL?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. FrameByFrame works on video files you already have on your device. It does not download from streaming services, which would breach their terms and, for most content, copyright."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does it work on a phone or tablet?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. The interface adapts to small screens and works with touch, including the timeline range handles. Extraction speed and how many frames you can hold at once are more limited on mobile hardware than on a desktop."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How are the exported files named?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "You choose: frame number, timecode, or both, prefixed with the source file name. Numbers are zero-padded to the size of the batch, so the stills sort correctly in any file manager."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I get one image instead of a batch?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Scrub to the moment you want, step to the exact frame, and use Capture this frame — or press C. It lands in the gallery for download on its own, with no extraction run needed."
+                }
+              }
+            ]
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://framebyframe.app/#breadcrumbs",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://framebyframe.app/" },
+              { "@type": "ListItem", "position": 2, "name": "Video Frame Extractor", "item": "https://framebyframe.app/#extractor" }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

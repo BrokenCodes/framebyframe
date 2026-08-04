@@ -1,0 +1,772 @@
+@import 'tailwindcss';
+
+/*
+ * FrameByFrame design system — editorial / industrial.
+ * Sharp corners, hairline rules, bone-and-ink surfaces, one crimson accent.
+ */
+
+@theme {
+  --color-crimson: #c2202f;
+  --color-crimson-hot: #d82b3a;
+  --color-bone: #f2f0ec;
+  --color-bone-2: #ffffff;
+  --color-carbon: #0b0b0d;
+  --color-carbon-2: #16161a;
+
+  --font-display:
+    'Inter Tight', Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-body:
+    Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-accent: 'Instrument Serif', 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/*
+ * Theming works on two axes:
+ *
+ *   1. Theme (light | dark) — set by the `.dark` class on <html>. This decides
+ *      whether the page is genuinely bone-on-ink or ink-on-bone.
+ *   2. Band (default | .band-alt) — a within-theme surface alternation that gives
+ *      the layout its editorial rhythm without ever fighting the chosen theme.
+ *
+ * Every component reads the same four surface/text tokens, so adding a band or
+ * flipping the theme never needs a component change.
+ *
+ *   --paper    section surface
+ *   --paper-2  raised card on that surface
+ *   --paper-3  sunken well on that surface
+ *   --ink / --ink-2 / --ink-3   primary / body / muted text
+ */
+
+/* ---------- LIGHT THEME ---------- */
+:root {
+  --paper: #f2f0ec;
+  --paper-2: #ffffff;
+  --paper-3: #e7e4de;
+  --ink: #0b0b0d;
+  --ink-2: #3b3b42;
+  /* #6e6e77 measured 4.44:1 on bone — just under AA, so darkened to 5.5:1. */
+  --ink-3: #5f5f68;
+  --line: rgb(11 11 13 / 0.14);
+  --line-strong: rgb(11 11 13 / 0.3);
+
+  /*
+   * Two accents on purpose:
+   *   --accent       brand crimson for FILLS (buttons, bars, handles, rules),
+   *                  where --accent-ink supplies the contrast on top.
+   *   --accent-text  the same hue retuned for use AS TEXT on page surfaces,
+   *                  so small accent labels clear WCAG AA (4.5:1) in both themes.
+   * Using --accent for text is what pushed several labels under AA.
+   */
+  --accent: #c2202f;
+  --accent-ink: #ffffff;
+  --accent-text: #b01b28;
+
+  /* Inverted pair for tooltips and scrims — always the opposite of the page. */
+  --invert-bg: #0b0b0d;
+  --invert-fg: #f2f0ec;
+  --invert-line: rgb(242 240 236 / 0.24);
+  --scrim: rgb(11 11 13 / 0.55);
+
+  /*
+   * Media surfaces stay near-black in BOTH themes on purpose: you judge an
+   * extracted frame against a neutral dark ground, and a cream backdrop would
+   * skew perceived exposure. This is a deliberate constant, not a missed token.
+   */
+  --media-bg: #0b0b0d;
+  --media-fg: #ffffff;
+
+  /* Filmstrip overlays sit on video thumbnails, so they are fixed in both themes. */
+  --strip-dim: rgb(0 0 0 / 0.62);
+  --strip-fg: #ffffff;
+
+  color-scheme: light;
+}
+
+/* Alternate band within the light theme — white instead of bone. */
+.band-alt {
+  --paper: #ffffff;
+  --paper-2: #f2f0ec;
+  --paper-3: #eae7e1;
+}
+
+/* ---------- DARK THEME ---------- */
+.dark {
+  --paper: #0b0b0d;
+  --paper-2: #16161a;
+  --paper-3: #1c1c22;
+  --ink: #f2f0ec;
+  --ink-2: #b6b6be;
+  --ink-3: #85858f;
+  --line: rgb(242 240 236 / 0.15);
+  --line-strong: rgb(242 240 236 / 0.32);
+  --accent: #e0303f;
+  --accent-ink: #ffffff;
+  /* Lifted well clear of AA on every dark surface, including the alt band. */
+  --accent-text: #f8737d;
+
+  --invert-bg: #f2f0ec;
+  --invert-fg: #0b0b0d;
+  --invert-line: rgb(11 11 13 / 0.24);
+  --scrim: rgb(0 0 0 / 0.72);
+
+  color-scheme: dark;
+}
+
+/* Alternate band within the dark theme — slightly lifted off true black. */
+.dark .band-alt {
+  --paper: #131318;
+  --paper-2: #1c1c22;
+  --paper-3: #22222a;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink-2);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    color: var(--ink);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.02;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* Sharp corners are the whole point — kill inherited radii. */
+  button,
+  input,
+  select,
+  textarea {
+    border-radius: 0;
+    font: inherit;
+  }
+}
+
+@layer components {
+  /* Applies whichever surface the current theme + band resolve to. */
+  .band {
+    background: var(--paper);
+    color: var(--ink-2);
+  }
+
+  /* Media viewport: constant dark ground for judging frames. */
+  .media-surface {
+    background: var(--media-bg);
+    color: var(--media-fg);
+  }
+
+  /*
+   * Hero wash. On ink the accent can bloom; on bone the same values would look
+   * like a stain, so light theme gets a far subtler, cooler treatment.
+   */
+  .hero-wash {
+    background:
+      radial-gradient(120% 90% at 78% 8%, rgb(194 32 47 / 0.09) 0%, transparent 58%),
+      radial-gradient(90% 70% at 8% 96%, rgb(11 11 13 / 0.06) 0%, transparent 60%);
+  }
+
+  .dark .hero-wash {
+    background:
+      radial-gradient(120% 90% at 78% 8%, rgb(224 48 63 / 0.22) 0%, transparent 58%),
+      radial-gradient(90% 70% at 8% 96%, rgb(60 66 92 / 0.45) 0%, transparent 60%);
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 88rem;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .shell {
+      padding-inline: 3rem;
+    }
+  }
+
+  /* ---- type ---- */
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .eyebrow-accent {
+    color: var(--accent-text);
+  }
+
+  .eyebrow::before {
+    content: '';
+    width: 2.5rem;
+    height: 1px;
+    background: var(--accent);
+    flex: none;
+  }
+
+  .eyebrow-plain::before {
+    display: none;
+  }
+
+  .display-1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, 8.5vw, 6.5rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 0.96;
+  }
+
+  .display-2 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .display-3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  /* The signature move: a red italic serif phrase inside a grotesk headline. */
+  .accent-serif {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+  }
+
+  .lede {
+    font-size: clamp(1.0625rem, 1.5vw, 1.3125rem);
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+
+  .prose-body {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+
+  .numeral {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--accent-text);
+  }
+
+  /* ---- structure ---- */
+  .rule {
+    height: 1px;
+    background: var(--line);
+    border: 0;
+    width: 100%;
+  }
+
+  .rule-strong {
+    height: 1px;
+    background: var(--line-strong);
+    border: 0;
+    width: 100%;
+  }
+
+  .card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+  }
+
+  .sunken {
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+  }
+
+  /* ---- buttons ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border: 1px solid transparent;
+    padding: 0.8rem 1.4rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      color 140ms ease,
+      border-color 140ms ease;
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-accent {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .btn-accent:hover:not(:disabled) {
+    background: var(--color-crimson-hot);
+  }
+
+  .btn-solid {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .btn-solid:hover:not(:disabled) {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn-outline {
+    border-color: var(--line-strong);
+    color: var(--ink);
+    background: transparent;
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
+
+  .btn-quiet {
+    color: var(--ink-2);
+    background: transparent;
+    letter-spacing: 0.08em;
+  }
+
+  .btn-quiet:hover:not(:disabled) {
+    color: var(--accent);
+  }
+
+  .btn-icon {
+    padding: 0.6rem;
+    letter-spacing: 0;
+  }
+
+  /* Text link with an arrow, used as a section out-link. */
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+
+  .link-arrow svg {
+    transition: transform 160ms ease;
+  }
+
+  .link-arrow:hover {
+    color: var(--accent-text);
+  }
+
+  .link-arrow:hover svg {
+    transform: translateX(0.35rem);
+  }
+
+  /* ---- controls ---- */
+  .field {
+    width: 100%;
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+    padding: 0.6rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--ink);
+  }
+
+  .field:hover {
+    border-color: var(--line-strong);
+  }
+
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.6rem;
+  }
+
+  /* Segmented control — hairline dividers, no radii, no shadows. */
+  .segment {
+    display: grid;
+    border: 1px solid var(--line);
+    background: var(--paper-3);
+  }
+
+  .segment-item {
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    padding: 0.55rem 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 140ms ease, color 140ms ease;
+    border-inline-start: 1px solid var(--line);
+  }
+
+  .segment-item:first-child {
+    border-inline-start: 0;
+  }
+
+  .segment-item:hover:not(:disabled) {
+    color: var(--ink);
+  }
+
+  .segment-item[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--line);
+    padding: 0.25rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-2);
+    background: var(--paper-2);
+  }
+
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1.25rem;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .slider::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--line-strong);
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0.75rem;
+    height: 1rem;
+    margin-top: -0.44rem;
+    background: var(--accent);
+    border: 0;
+  }
+
+  .slider::-moz-range-track {
+    height: 2px;
+    background: var(--line-strong);
+  }
+
+  .slider::-moz-range-thumb {
+    width: 0.75rem;
+    height: 1rem;
+    border-radius: 0;
+    background: var(--accent);
+    border: 0;
+  }
+
+  /* ---- marquee ticker ---- */
+  .marquee {
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+    border-block: 1px solid var(--line);
+    background: var(--paper);
+  }
+
+  .marquee-track {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 2.5rem;
+    padding-block: 0.9rem;
+    padding-inline-end: 2.5rem;
+    animation: marquee 42s linear infinite;
+  }
+
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  .marquee-item {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    flex: none;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  /* ---- stat grid ---- */
+  .stat-value {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .stat-unit {
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+  }
+}
+
+/*
+ * ---------- Google page translation ----------
+ * The widget ships its own markup and inline styles, so these rules are
+ * deliberately specific and use !important where Google inlines values.
+ */
+/*
+ * These rules are intentionally NOT in @layer components: Google's stylesheet is
+ * unlayered, and unlayered CSS always wins over layered CSS regardless of
+ * specificity. Inside a layer these were silently losing.
+ */
+.gt-wrap {
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * Clip the gadget to the select. Google appends a stray "Translator" label as a
+ * bare text node, which is easier to crop than to reliably suppress.
+ */
+#google_translate_element {
+  max-height: 2rem;
+  overflow: hidden;
+  line-height: 0;
+}
+
+/* Collapse Google's branding block; only the language <select> should show. */
+#google_translate_element .goog-te-gadget {
+  font-family: var(--font-body) !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  color: transparent !important;
+}
+
+/*
+ * The gadget is: [ div containing the <select> ][ "Translator" span ][ text ].
+ * Only the first child is wanted. Hiding every later child is more robust than
+ * chasing class names — the label's own font-size computes to 0 but a nested
+ * descendant carries its own size and still paints.
+ */
+#google_translate_element .goog-te-gadget > *:not(:first-child) {
+  display: none !important;
+}
+
+/*
+ * Kill every link inside the widget. Google renders a "Translator" anchor to
+ * translate.google.com with target="_blank"; its class is obfuscated and it is
+ * nested inside the select's wrapper, so match on the element, not a class.
+ */
+#google_translate_element a {
+  display: none !important;
+}
+
+#google_translate_element .goog-logo-link,
+#google_translate_element .goog-te-gadget-icon,
+#google_translate_element img {
+  display: none !important;
+}
+
+/* Hover tooltip over translated runs — also carries outbound links. */
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+/* Google inlines font and sizing on the select, so those need !important. */
+#google_translate_element .goog-te-combo {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  color: var(--ink);
+  font-family: var(--font-body) !important;
+  font-size: 0.6875rem !important;
+  line-height: 1.2 !important;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.4rem;
+  margin: 0 !important;
+  height: auto !important;
+  width: 6.5rem;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+#google_translate_element .goog-te-combo:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* The option list is OS-rendered, so it needs real (not transparent) colours. */
+#google_translate_element .goog-te-combo option {
+  background: var(--paper-2);
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+/*
+ * Google injects a fixed banner iframe and pushes <body> down with an inline
+ * `top` value. Both have to be neutralised or the sticky header is displaced.
+ */
+.goog-te-banner-frame,
+.goog-te-gadget-simple + iframe,
+body > .skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+/* Google highlights translated runs; that fights the design. */
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+@layer utilities {
+  /* Opt text out of machine translation (product name, technical values). */
+  .notranslate {
+    /* purely a marker for Google; no visual effect */
+  }
+
+  .checker {
+    background-image:
+      linear-gradient(45deg, rgb(128 128 128 / 0.14) 25%, transparent 25%),
+      linear-gradient(-45deg, rgb(128 128 128 / 0.14) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgb(128 128 128 / 0.14) 75%),
+      linear-gradient(-45deg, transparent 75%, rgb(128 128 128 / 0.14) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rise {
+    animation: rise 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* one full copy of the item list */
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

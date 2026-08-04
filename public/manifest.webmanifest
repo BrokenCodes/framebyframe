@@ -1,0 +1,20 @@
+{
+  "name": "FrameByFrame — Video Frame Extractor",
+  "short_name": "FrameByFrame",
+  "description": "Extract full-resolution frames from any video entirely in your browser. No upload, no account.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0b0d",
+  "theme_color": "#0b0b0d",
+  "orientation": "any",
+  "categories": ["photo", "video", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230b0b0d'/%3E%3Crect x='96' y='144' width='320' height='224' fill='none' stroke='%23f2f0ec' stroke-width='28'/%3E%3Cpath d='M192 144v224M320 144v224' stroke='%23c2202f' stroke-width='28'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
