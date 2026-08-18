@@ -5,13 +5,14 @@
  * compliance-critical half. This module owns the UI-facing half: which regime a
  * visitor falls under, what they chose, and pushing updates.
  *
- * Only `analytics` is offered because that is all the site uses. Advertising
- * signals are never granted.
+ * Two categories are offered: `analytics` (Google Analytics 4) and `ads`
+ * (Google AdSense). Refusing ads does not remove them — AdSense then serves
+ * non-personalised, cookieless ads.
  */
 
 export const CONSENT_KEY = 'framebyframe:consent'
 /** Bump when the categories change; invalidates older decisions. */
-export const CONSENT_VERSION = 1
+export const CONSENT_VERSION = 2
 
 /**
  * How consent must be obtained:
@@ -74,7 +75,7 @@ export function readConsent() {
     const raw = localStorage.getItem(CONSENT_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
-    if (typeof parsed?.analytics !== 'boolean') return null
+    if (typeof parsed?.analytics !== 'boolean' || typeof parsed?.ads !== 'boolean') return null
     // A stale version means the categories changed — ask again.
     if (parsed.version !== CONSENT_VERSION) return null
     return parsed
@@ -83,15 +84,16 @@ export function readConsent() {
   }
 }
 
-function gtagUpdate(analytics) {
+function gtagUpdate(analytics, ads) {
   if (typeof window.gtag !== 'function') return
   window.gtag('consent', 'update', {
     analytics_storage: analytics ? 'granted' : 'denied',
     functionality_storage: analytics ? 'granted' : 'denied',
-    // Never granted: this site serves no advertising.
-    ad_storage: 'denied',
-    ad_user_data: 'denied',
-    ad_personalization: 'denied',
+    // AdSense reads these. Denied means non-personalised, cookieless ads rather
+    // than no ads, so refusing costs the visitor nothing.
+    ad_storage: ads ? 'granted' : 'denied',
+    ad_user_data: ads ? 'granted' : 'denied',
+    ad_personalization: ads ? 'granted' : 'denied',
   })
 }
 
@@ -136,26 +138,32 @@ export function initConsent(els) {
     els.banner.setAttribute('aria-modal', String(blocking()))
 
     els.heading.textContent = blocking()
-      ? 'Before we measure anything'
-      : 'How this site measures traffic'
+      ? 'Before we measure or personalise anything'
+      : 'Analytics and advertising on this site'
     els.tail.textContent =
       regime === 'opt-in'
-        ? 'Nothing is loaded until you choose.'
-        : 'You can turn it off at any time.'
-    els.rejectLabel.textContent =
-      regime === 'opt-in' ? 'Reject analytics' : 'Opt out of analytics'
+        ? 'Neither loads a cookie until you choose.'
+        : 'You can change this at any time.'
+    els.rejectLabel.textContent = regime === 'opt-in' ? 'Reject all' : 'Opt out'
+    els.acceptLabel.textContent = 'Accept all'
 
     // Only offer Close once a decision exists.
     els.close.hidden = !choice
     els.state.hidden = !choice
     if (choice) {
-      els.state.textContent = `Currently ${choice.analytics ? 'accepted' : 'declined'}`
+      els.state.textContent =
+        choice.analytics && choice.ads
+          ? 'Currently accepted'
+          : !choice.analytics && !choice.ads
+            ? 'Currently declined — ads are non-personalised'
+            : 'Currently partly accepted'
     }
   }
 
-  const decide = (analytics) => {
+  const decide = (analytics, ads) => {
     choice = {
       analytics,
+      ads,
       decidedAt: new Date().toISOString(),
       version: CONSENT_VERSION,
       regime,
@@ -165,13 +173,13 @@ export function initConsent(els) {
     } catch {
       /* storage blocked — the choice still applies for this page view */
     }
-    gtagUpdate(analytics)
+    gtagUpdate(analytics, ads)
     if (!analytics) clearAnalyticsCookies()
     render(false)
   }
 
-  els.accept.addEventListener('click', () => decide(true))
-  els.reject.addEventListener('click', () => decide(false))
+  els.accept.addEventListener('click', () => decide(true, true))
+  els.reject.addEventListener('click', () => decide(false, false))
   els.close.addEventListener('click', () => render(false))
 
   els.detailsToggle.addEventListener('click', () => {
@@ -188,10 +196,10 @@ export function initConsent(els) {
 
   /*
    * Under opt-out and notice the visitor is measured from the start (lawful
-   * there), so record that state if a privacy signal says otherwise.
+   * there), so record a refusal if a privacy signal says otherwise.
    * Under opt-in nothing is granted until `decide` runs.
    */
-  if (!choice && regime !== 'opt-in' && signalsDeny()) decide(false)
+  if (!choice && regime !== 'opt-in' && signalsDeny()) decide(false, false)
   else render(!choice)
 
   return { reopen: () => render(true) }

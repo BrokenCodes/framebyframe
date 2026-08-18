@@ -119,9 +119,9 @@
             gtag('consent', 'update', {
               analytics_storage: saved.analytics ? 'granted' : 'denied',
               functionality_storage: saved.analytics ? 'granted' : 'denied',
-              ad_storage: 'denied',
-              ad_user_data: 'denied',
-              ad_personalization: 'denied',
+              ad_storage: saved.ads ? 'granted' : 'denied',
+              ad_user_data: saved.ads ? 'granted' : 'denied',
+              ad_personalization: saved.ads ? 'granted' : 'denied',
             })
           }
         } catch (e) {}
@@ -175,6 +175,21 @@
 
       gtag('config', 'G-Z6VDR9K266')
     </script>
+
+    <!--
+      Google AdSense.
+
+      Deliberately placed AFTER the Consent Mode block above: those defaults must
+      be on the dataLayer before this script loads, so that in the EEA, UK,
+      Switzerland and the other prior-consent regions AdSense starts with
+      ad_storage / ad_user_data / ad_personalization denied and serves
+      non-personalised ads until the visitor opts in.
+    -->
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9003685157689207"
+      crossorigin="anonymous"
+    ></script>
 
     <!-- ==================== Styles & fonts ==================== -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -958,13 +973,15 @@
               <span class="numeral">05</span>
               <h3>What we do measure</h3>
               <p>
-                The page can load Google Analytics for aggregate visit statistics, and Google’s
-                translation widget once you pick a language. Both set cookies and see your IP
-                address, and translation sends the page’s visible text — never your video, and
-                never any extracted frame — to Google. In the EEA, UK, Switzerland and other
-                prior-consent countries nothing loads until you accept; elsewhere you get a
-                notice and a one-click opt-out. Global Privacy Control and Do Not Track are
-                honoured everywhere. Change your mind any time via Privacy choices in the footer.
+                The page loads Google Analytics for aggregate visit statistics and Google
+                AdSense to show ads, plus Google’s translation widget once you pick a language.
+                These set cookies and see your IP address, and translation sends the page’s
+                visible text — never your video, and never any extracted frame — to Google. In
+                the EEA, UK, Switzerland and other prior-consent countries nothing loads until
+                you accept; elsewhere you get a notice and a one-click opt-out. Declining does
+                not remove the ads, it makes them non-personalised and cookieless. Global
+                Privacy Control and Do Not Track are honoured everywhere. Change your mind any
+                time via Privacy choices in the footer.
               </p>
             </article>
           </div>
@@ -1185,7 +1202,7 @@
         <div class="footer-legal">
           <p>
             Your video is processed in your browser and never uploaded. No accounts. This site
-            uses Google Analytics.
+            uses Google Analytics and shows ads via Google AdSense.
           </p>
           <p class="mono">© <span id="year">2026</span> <span class="notranslate" translate="no">FrameByFrame</span></p>
         </div>
@@ -1227,9 +1244,11 @@
           </p>
           <p class="prose-body">
             Your video never leaves this device and is never uploaded — that does not change.
-            Separately, this page can load <strong>Google Analytics</strong> to count visits,
-            which sets cookies and shares your IP address with Google.
-            <span id="consent-tail">You can turn it off at any time.</span>
+            Separately, this page loads <strong>Google Analytics</strong> to count visits and
+            <strong>Google AdSense</strong> to show ads. Both set cookies and share your IP
+            address with Google. Declining does not remove the ads; it makes them
+            non-personalised.
+            <span id="consent-tail">You can change this at any time.</span>
           </p>
 
           <dl class="consent-detail" id="consent-detail" hidden>
@@ -1239,7 +1258,11 @@
             </div>
             <div>
               <dt>Analytics <span class="opt">Your choice</span></dt>
-              <dd>Google Analytics 4 — aggregate visit counts. Sets cookies and sees your IP. No advertising or profiling signals are ever enabled.</dd>
+              <dd>Google Analytics 4 — aggregate visit counts. Sets cookies and sees your IP address.</dd>
+            </div>
+            <div>
+              <dt>Advertising <span class="opt">Your choice</span></dt>
+              <dd>Google AdSense. Declining keeps the ads but makes them non-personalised and cookieless — nothing is built into a profile of you.</dd>
             </div>
           </dl>
 
@@ -1251,7 +1274,7 @@
         <div class="consent-actions">
           <button class="btn btn-accent btn-block" id="consent-accept">
             <svg class="ico" aria-hidden="true"><use href="#i-check" /></svg>
-            Accept analytics
+            <span id="consent-accept-label">Accept all</span>
           </button>
           <button class="btn btn-outline btn-block" id="consent-reject">
             <svg class="ico" aria-hidden="true"><use href="#i-x" /></svg>

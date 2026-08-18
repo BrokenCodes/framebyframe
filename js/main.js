@@ -22,6 +22,7 @@ const consent = initConsent({
   scrim: $('#consent-scrim'),
   heading: $('#consent-heading'),
   tail: $('#consent-tail'),
+  acceptLabel: $('#consent-accept-label'),
   rejectLabel: $('#consent-reject-label'),
   detail: $('#consent-detail'),
   detailsToggle: $('#consent-details-toggle'),
